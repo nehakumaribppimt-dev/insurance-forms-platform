@@ -1,0 +1,6 @@
+/target/
+/data/
+/generated-documents/
+/.idea/
+*.iml
+.DS_Store
