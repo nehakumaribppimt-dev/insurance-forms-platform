@@ -13,15 +13,17 @@ import java.nio.file.*;
 import java.util.*;
 
 @RestController
-@RequestMapping("/v1")
+@RequestMapping("/v1") // API versioning
 public class FormsController {
-    private final FormJobRepository jobs;
-    private final GeneratedDocumentRepository docs;
-    private final JobProcessor processor;
-    private final PolicyClient policies;
-    private final FormCatalog catalog;
-    private final OdtDocumentService renderer;
 
+    private final PolicyClient policies; // to obtain upstream policy details
+    private final FormCatalog catalog; //to determine applicable forms and versions
+    private final JobProcessor processor; // to start processing actual insurance form
+    private final FormJobRepository jobs; // use to save and retrieve processing jobs from db
+    private final GeneratedDocumentRepository docs; //to retrieve generated doc records from db
+    private final OdtDocumentService renderer; //to resolve the file location of generated doc. doc processing is also connected to it
+
+    /*constructor dependency injection - used bcz it makes dependencies explicit, supports easier unit testing and allow us to keep them final*/
     public FormsController(FormJobRepository j, GeneratedDocumentRepository d, JobProcessor p, PolicyClient pc, FormCatalog c, OdtDocumentService r) {
         jobs = j;
         docs = d;
@@ -31,7 +33,8 @@ public class FormsController {
         renderer = r;
     }
 
-    @PostMapping("/form-jobs")
+    @PostMapping("/form-jobs") // handle http post request
+    //use to create new processing job
     public ResponseEntity<?> create(@Valid @RequestBody JobRequest req, @RequestHeader("Idempotency-Key") String key) {
         if (key.isBlank()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Idempotency-Key required");
         if (!Set.of("NEW_BUSINESS", "RENEWAL", "ENDORSEMENT", "CANCELLATION", "REINSTATEMENT").contains(req.transactionType()))
